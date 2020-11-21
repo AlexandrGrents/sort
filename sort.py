@@ -207,13 +207,12 @@ class Sort(object):
     self.trackers = []
     self.frame_count = 0
 
-  def update(self, dets=np.empty((0, 5))):
+  def update(self, dets=np.empty((0, 5)), make_associaties = False):
     """
     Params:
       dets - a numpy array of detections in the format [[x1,y1,x2,y2,score],[x1,y1,x2,y2,score],...]
     Requires: this method must be called once for each frame even with empty detections (use np.empty((0, 5)) for frames without detections).
     Returns the a similar array, where the last column is the object ID.
-
     NOTE: The number of objects returned may differ from the number of detections provided.
     """
     self.frame_count += 1
@@ -221,6 +220,8 @@ class Sort(object):
     trks = np.zeros((len(self.trackers), 5))
     to_del = []
     ret = []
+    if make_associaties: associaties = np.zeros(len(dets), dtype=np.int16)
+    
     for t, trk in enumerate(trks):
       pos = self.trackers[t].predict()[0]
       trk[:] = [pos[0], pos[1], pos[2], pos[3], 0]
@@ -234,11 +235,14 @@ class Sort(object):
     # update matched trackers with assigned detections
     for m in matched:
       self.trackers[m[1]].update(dets[m[0], :])
+      if make_associaties: associaties[m[0]] = self.trackers[m[1]].id+1
 
     # create and initialise new trackers for unmatched detections
     for i in unmatched_dets:
         trk = KalmanBoxTracker(dets[i,:])
         self.trackers.append(trk)
+        if make_associaties: associaties[i] = trk.id+1
+        
     i = len(self.trackers)
     for trk in reversed(self.trackers):
         d = trk.get_state()[0]
@@ -249,7 +253,9 @@ class Sort(object):
         if(trk.time_since_update > self.max_age):
           self.trackers.pop(i)
     if(len(ret)>0):
+      if make_associaties: return np.concatenate(ret), associaties  
       return np.concatenate(ret)
+    if make_associaties:  return np.empty((0,5)), []
     return np.empty((0,5))
 
 def parse_args():
