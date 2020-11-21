@@ -235,13 +235,18 @@ class Sort(object):
     # update matched trackers with assigned detections
     for m in matched:
       self.trackers[m[1]].update(dets[m[0], :])
-      if make_associaties: associaties[m[0]] = self.trackers[m[1]].id+1
+      if make_associaties: 
+        trk = self.trackers[m[1]]
+        if (trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits):
+          associaties[m[0]] = trk.id+1
 
     # create and initialise new trackers for unmatched detections
     for i in unmatched_dets:
         trk = KalmanBoxTracker(dets[i,:])
         self.trackers.append(trk)
-        if make_associaties: associaties[i] = trk.id+1
+        if make_associaties: 
+          if (trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits):
+            associaties[i] = trk.id+1
         
     i = len(self.trackers)
     for trk in reversed(self.trackers):
