@@ -1,3 +1,27 @@
+associative SORT
+=====
+This is fork for [official realization](https://github.com/abewley/sort) SORT tracker. In this fork function `Sort.update` can returning associative array like:
+
+`associaties[dets_num] = track_id`, where
+
+`associaties` - associative array
+
+`dets_num` - number passed to the function bbox
+
+`track_id` - track id that was assigned to this bbox
+
+if `track_id` is `0`, this object was not assigned a track id
+
+--------------------
+
+You can use this option if give parameter `make_associaties = True` in `Sort.update` method. In this case, the function will return the following values:
+
+`Sort.update(...) => [[x1, y1, x2, y2, track_id], ...], associaties`
+
+--------------------
+
+***This is followed by the official README.MD from [official realization](https://github.com/abewley/sort)***
+
 SORT
 =====
 
